@@ -43,6 +43,7 @@ mongoose.Query.prototype.exec = async function () {
   // Otherwise, issue the query and store the result to redis
   const result = await exec.apply(this, arguments);
 
+  console.log("Setting Key:", this.hashKey, key, result);
   client.hset(this.hashKey, key, JSON.stringify(result), "EX", 10);
 
   return result;
