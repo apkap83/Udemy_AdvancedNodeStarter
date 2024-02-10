@@ -4,6 +4,5 @@ module.exports = {
   googleClientSecret: "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",
   mongoURI:
     "mongodb+srv://apostolis12001:2i6PzZft86ge0EGY@cluster0.hwa8iqt.mongodb.net/MyAdvancedNodeDB?retryWrites=true&w=majority",
-  //'mongodb+srv://readonly:0Wc2It8kdXQ8INbh@cluster0.ffbere1.mongodb.net/advnode?retryWrites=true&w=majority',
   cookieKey: "123123123",
 };

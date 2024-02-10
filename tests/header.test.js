@@ -1,10 +1,12 @@
 const puppeteer = require("puppeteer");
+const sessionFactory = require("./factories/sessionFactory");
+const userFactory = require("./factories/userFactory");
 
 let browser, page;
 
 beforeEach(async () => {
   browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
   });
 
   page = await browser.newPage();
@@ -12,10 +14,11 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  //   await browser.close();
+  await browser.close();
 });
 
 test("the header has the correct text", async () => {
+  await page.waitForSelector("a.brand-logo");
   const text = await page.$eval("a.brand-logo", (el) => el.innerHTML);
   expect(text).toEqual("Blogster");
 });
@@ -28,28 +31,13 @@ test("clicking login starts oauth flow", async () => {
   expect(url).toMatch(/accounts\.google\.com/);
 });
 
-test.only("When signed in, shows logout button", async () => {
-  const id = "65bfb9074a74aa0da38caf37";
-
-  const Buffer = require("safe-buffer").Buffer;
-  const sessionObject = {
-    passport: {
-      user: id,
-    },
-  };
-
-  const sessionString = Buffer.from(JSON.stringify(sessionObject)).toString(
-    "base64"
-  );
-
-  const Keygrip = require("keygrip");
-  const keys = require("../config/keys");
-  const keygrip = new Keygrip([keys.cookieKey]);
-  const sig = keygrip.sign("session=" + sessionString);
+test("When signed in, shows logout button", async () => {
+  const user = await userFactory();
+  const { session, sig } = sessionFactory(user);
 
   await page.setCookie({
     name: "session",
-    value: sessionString,
+    value: session,
     url: "http://localhost:3000",
   });
   await page.setCookie({
@@ -57,5 +45,12 @@ test.only("When signed in, shows logout button", async () => {
     value: sig,
     url: "http://localhost:3000",
   });
+
+  // Go to page with the cookies this time...
   await page.goto("http://localhost:3000");
+  await page.waitForSelector('a[href="/auth/logout"]');
+
+  const text = await page.$eval('a[href="/auth/logout"]', (el) => el.innerHTML);
+
+  expect(text).toEqual("Logout");
 });
